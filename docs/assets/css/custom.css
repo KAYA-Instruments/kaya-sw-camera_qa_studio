@@ -1,0 +1,70 @@
+/* Make docs wide */
+.main-content{
+  max-width: min(1800px, 98vw) !important;
+  padding-left: clamp(12px, 2vw, 32px) !important;
+  padding-right: clamp(12px, 2vw, 32px) !important;
+}
+
+/* Scroll wrapper (fallback only) */
+.main-content .table-scroll {
+    width: 100% !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 1em 0;
+}
+
+/* Keep table as a table (do NOT make it display:block) */
+.main-content .table-scroll>table.cli-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    display: table !important;
+    border-collapse: collapse;
+}
+
+/* Left-align headers */
+.main-content .table-scroll>table.cli-table thead th {
+    text-align: left !important;
+    white-space: nowrap;
+}
+
+/* Required column centered */
+.main-content .table-scroll>table.cli-table thead th.col-required,
+.main-content .table-scroll>table.cli-table tbody td.col-required {
+    text-align: center !important;
+    white-space: nowrap;
+}
+
+/* Header: keep labels on one line */
+.main-content .table-scroll > table.cli-table thead th{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+/* Body cells: allow wrapping to avoid horizontal scroll */
+.main-content .table-scroll > table.cli-table tbody td{
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Keep option/default code compact */
+.main-content .table-scroll>table.cli-table td.col-option code,
+.main-content .table-scroll>table.cli-table td.col-default code {
+    white-space: nowrap;
+}
+
+/* Allow code wrapping in Type/Description */
+.main-content .table-scroll>table.cli-table td.col-type code,
+.main-content .table-scroll>table.cli-table td.col-desc code {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* CLI tables: column widths (override inline <col style="width:...">) */
+.main-content .table-scroll > table.cli-table colgroup col:nth-child(1) { width: 16% !important; } /* Option */
+.main-content .table-scroll > table.cli-table colgroup col:nth-child(2) { width: 10% !important; } /* Required */
+.main-content .table-scroll > table.cli-table colgroup col:nth-child(3) { width: 14% !important; } /* Type */
+.main-content .table-scroll > table.cli-table colgroup col:nth-child(4) { width: 12% !important; } /* Default */
+.main-content .table-scroll > table.cli-table colgroup col:nth-child(5) { width: 48% !important; } /* Description */

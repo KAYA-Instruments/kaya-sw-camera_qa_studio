@@ -1,0 +1,60 @@
+--- --- @import "{{ site.theme }}";
+
+/* Make docs wide */
+.main-content{
+  max-width: min(1800px, 98vw) !important;
+  padding-left: clamp(12px, 2vw, 32px) !important;
+  padding-right: clamp(12px, 2vw, 32px) !important;
+}
+
+/* Scroll wrapper (fallback only) */
+.main-content .table-scroll {
+  width: 100% !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1em 0;
+}
+
+/* IMPORTANT: keep table as a table (do not use display:block on table) */
+.main-content .table-scroll>table.cli-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  display: table !important;
+  border-collapse: collapse;
+}
+
+/* Left-align headers */
+.main-content .table-scroll>table.cli-table thead th {
+  text-align: left !important;
+  white-space: nowrap;
+}
+
+/* Required column centered */
+.main-content .table-scroll>table.cli-table thead th.col-required,
+.main-content .table-scroll>table.cli-table tbody td.col-required {
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+/* Allow wrapping in cells */
+.main-content .table-scroll>table.cli-table th,
+.main-content .table-scroll>table.cli-table td {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  vertical-align: top;
+}
+
+/* Keep option/default code compact */
+.main-content .table-scroll>table.cli-table td.col-option code,
+.main-content .table-scroll>table.cli-table td.col-default code {
+  white-space: nowrap;
+}
+
+/* Allow code wrapping in Type/Description */
+.main-content .table-scroll>table.cli-table td.col-type code,
+.main-content .table-scroll>table.cli-table td.col-desc code {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
