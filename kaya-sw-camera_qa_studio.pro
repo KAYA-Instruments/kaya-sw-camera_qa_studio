@@ -6,12 +6,14 @@ CONFIG += qt warn_on
 TEMPLATE = app
 TARGET = kaya-sw-camera_qa_studio
 
+INCLUDEPATH += src
+
 SOURCES += \
-    main.cpp \
-    RawPixelModel.cpp
+    src/main.cpp \
+    src/RawPixelModel.cpp
 
 HEADERS += \
-    RawPixelModel.h
+    src/RawPixelModel.h
 
 RESOURCES += \
-    qml.qrc
+    src/qml.qrc
