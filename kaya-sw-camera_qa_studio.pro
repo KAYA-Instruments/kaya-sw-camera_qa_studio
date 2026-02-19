@@ -6,6 +6,8 @@ CONFIG += qt warn_on
 TEMPLATE = app
 TARGET = kaya-sw-camera_qa_studio
 
+DESTDIR = $$PWD/TESTDIR
+
 INCLUDEPATH += src
 
 SOURCES += \
@@ -17,3 +19,7 @@ HEADERS += \
 
 RESOURCES += \
     src/qml.qrc
+
+CONFIG(debug, debug|release) {
+    TARGET = $$TARGET"D"
+}
