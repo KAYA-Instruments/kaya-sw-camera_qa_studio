@@ -109,7 +109,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-desc">PixelFormat: Mono8/Mono10/Mono12/Mono14/Mono16, Bayer{GR,RG,GB,BG}{8,10,12,14,16}</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--stride</code></td>
+      <td class="col-option"><code>--refstride</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT</code></td>
       <td class="col-default"><code>0</code></td>
@@ -142,7 +142,7 @@ Tip: groups below are collapsible (expand the ones you need).
   </thead>
   <tbody>
     <tr>
-      <td class="col-option"><code>--input</code></td>
+      <td class="col-option"><code>--refinput</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>TEXT:FILE</code></td>
       <td class="col-default"><code></code></td>
@@ -167,66 +167,66 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT:UINT in [0 - 4294967295]</code></td>
       <td class="col-default"><code>0</code></td>
-      <td class="col-desc">Test pattern value minimum (applied as: value = min + base * step). When --tpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --tpg-bpp domain.</td>
+      <td class="col-desc">Test pattern value minimum (applied as: value = min + base * step). When --reftpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--TestPatternValueMax</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>INT:INT in [-1 - 4294967295]</code></td>
       <td class="col-default"><code>4095</code></td>
-      <td class="col-desc">Test pattern value maximum. Use -1 to auto-calculate from --PixelFormat bit depth. When --tpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --tpg-bpp domain.</td>
+      <td class="col-desc">Test pattern value maximum. Use -1 to auto-calculate from --PixelFormat bit depth. When --reftpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--TestPatternValueStep</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT:UINT in [1 - 4294967295]</code></td>
       <td class="col-default"><code>1</code></td>
-      <td class="col-desc">Test pattern value step (applied as: value = min + base * step). When --tpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --tpg-bpp domain.</td>
+      <td class="col-desc">Test pattern value step (applied as: value = min + base * step). When --reftpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--tpg-mode</code></td>
+      <td class="col-option"><code>--reftpg-mode</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>TEXT:{spec,developer}</code></td>
       <td class="col-default"><code>spec</code></td>
       <td class="col-desc">TPG mode: spec or developer</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--tpg-fraction</code></td>
+      <td class="col-option"><code>--reftpg-fraction</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT</code></td>
       <td class="col-default"><code>8</code></td>
       <td class="col-desc">TPG fractional bits (F)</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--tpg-bpp</code></td>
+      <td class="col-option"><code>--reftpg-bpp</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT:UINT in [1 - 16]</code></td>
       <td class="col-default"><code>12</code></td>
       <td class="col-desc">TPG internal bit depth (independent of PixelFormat)</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--tpgRespectPixelFormat</code></td>
+      <td class="col-option"><code>--reftpgRespectPixelFormat</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>BOOLEAN</code></td>
       <td class="col-default"><code>true</code></td>
-      <td class="col-desc">When true (default), scale TPG so that --PixelFormat bit depth is respected (emulate fixed firmware). When false, keep legacy behavior: TPG operates purely in internal --tpg-bpp domain (emulate buggy firmware).</td>
+      <td class="col-desc">When true (default), scale TPG so that --PixelFormat bit depth is respected (emulate fixed firmware). When false, keep legacy behavior: TPG operates purely in internal --reftpg-bpp domain (emulate buggy firmware).</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--tpg-clamp</code></td>
+      <td class="col-option"><code>--reftpg-clamp</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Clamp TPG values to output bit depth (off by default)</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--tpg-fullscale</code></td>
+      <td class="col-option"><code>--reftpg-fullscale</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Internal: generate full-scale ramps in output bit depth (non-firmware policy)</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--tpg-modulo</code></td>
+      <td class="col-option"><code>--reftpg-modulo</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
@@ -273,7 +273,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-desc">Set black level for the channel selected by the immediately preceding --BlackLevelSelector</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--blc-all-added</code></td>
+      <td class="col-option"><code>--refblc-all-added</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>BOOLEAN</code></td>
       <td class="col-default"><code>true</code></td>
@@ -407,7 +407,7 @@ Tip: groups below are collapsible (expand the ones you need).
   </thead>
   <tbody>
     <tr>
-      <td class="col-option"><code>--output</code></td>
+      <td class="col-option"><code>--refoutput</code></td>
       <td class="col-required">yes</td>
       <td class="col-type"><code>TEXT</code></td>
       <td class="col-default"><code></code></td>
@@ -440,21 +440,21 @@ Tip: groups below are collapsible (expand the ones you need).
   </thead>
   <tbody>
     <tr>
-      <td class="col-option"><code>--dump-stages</code></td>
+      <td class="col-option"><code>--refdump-stages</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Dump intermediate buffers after each stage (not implemented yet)</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--packed-io</code></td>
+      <td class="col-option"><code>--refpacked-io</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Use packed RAW for input/output when bpp is 10/12/14 (default is unpacked 16-bit for &gt;8)</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--debayer</code></td>
+      <td class="col-option"><code>--refdebayer</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>TEXT:{nearest,bilinear}</code></td>
       <td class="col-default"><code></code></td>
@@ -487,21 +487,21 @@ Tip: groups below are collapsible (expand the ones you need).
   </thead>
   <tbody>
     <tr>
-      <td class="col-option"><code>--config</code></td>
+      <td class="col-option"><code>--refconfig</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>:FILE</code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Config file (TOML/INI). Command line options override config.</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--version</code></td>
+      <td class="col-option"><code>--refversion</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Display program version information and exit</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--print-cli-json</code></td>
+      <td class="col-option"><code>--refprint-cli-json</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
@@ -517,9 +517,9 @@ Tip: groups below are collapsible (expand the ones you need).
 
 ## Output auto-naming (`@args@`)
 
-`--output` supports a special value: `@args@`.
+`--refoutput` supports a special value: `@args@`.
 
-When `--output @args@` is used, the utility auto-generates an output filename based on the effective CLI arguments.
+When `--refoutput @args@` is used, the utility auto-generates an output filename based on the effective CLI arguments.
 This feature is relied upon by the workflow even if it is not currently shown in `--help`.
 
 Example:
@@ -529,18 +529,18 @@ kaya-sw-camera_qa_reference_buffer.exe ^
   --Width 640 --Height 640 ^
   --PixelFormat Mono10 ^
   --TestPattern GrayDiagonalRamp ^
-  --output @args@
+  --refoutput @args@
 ```
 
 This will produce an output file named like:
 
 ```text
-out --Width 640 --Height 640 --PixelFormat Mono10 --TestPattern GrayDiagonalRamp.raw
+ref --Width 640 --Height 640 --PixelFormat Mono10 --TestPattern GrayDiagonalRamp.raw
 ```
 
-## CLI schema export (`--print-cli-json`)
+## CLI schema export (`--refprint-cli-json`)
 
-`--print-cli-json` prints a JSON schema describing all options.
+`--refprint-cli-json` prints a JSON schema describing all options.
 
 Note: output includes a `CMDLINE:` prefix line before the JSON object.
 Consumers should extract JSON by locating the first `{` and the last `}`.
