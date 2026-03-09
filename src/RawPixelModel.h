@@ -58,6 +58,9 @@ public:
     Q_INVOKABLE QVariantMap inferSpecFromFilePath(const QString& path);
     Q_INVOKABLE void setCompareTo(QObject* otherModel);
 
+
+    Q_INVOKABLE void refreshDiff();
+
 signals:
     void specChanged();
     void fileChanged();

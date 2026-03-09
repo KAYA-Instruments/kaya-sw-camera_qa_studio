@@ -197,11 +197,18 @@ void RawPixelModel::resetModel()
     beginResetModel();
     endResetModel();
 
-    if (m_other)
-    {
-        emit dataChanged(index(0,0), index(qMax(0,m_height-1), qMax(0,m_width-1)), {IsDiffRole});
-    }
+    refreshDiff();
+    if (m_other) m_other->refreshDiff();
 }
+
+void RawPixelModel::refreshDiff()
+{
+    if (m_width <= 0 || m_height <= 0) return;
+
+    // Emit "all roles changed" to force QML TableView to refresh delegate bindings
+    emit dataChanged(index(0, 0), index(m_height - 1, m_width - 1));
+}
+
 
 void RawPixelModel::closeMapped()
 {
@@ -257,10 +264,9 @@ bool RawPixelModel::loadFile(const QUrl& url)
     emit fileChanged();
     emit sizeStatusChanged();
 
-    if (m_other)
-    {
-        emit dataChanged(index(0,0), index(qMax(0,m_height-1), qMax(0,m_width-1)), {IsDiffRole});
-    }
+    refreshDiff();
+    if (m_other) m_other->refreshDiff();
+
 
     return ok;
 }
@@ -303,10 +309,8 @@ void RawPixelModel::setCompareTo(QObject* otherModel)
 
     m_other = om;
 
-    if (m_height > 0 && m_width > 0)
-    {
-        emit dataChanged(index(0,0), index(m_height-1, m_width-1), {IsDiffRole});
-    }
+    refreshDiff();
+    if (m_other) m_other->refreshDiff();
 }
 
 bool RawPixelModel::isComparableToOther() const
