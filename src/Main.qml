@@ -293,6 +293,7 @@ Item { Layout.fillWidth: true }
                     Item { Layout.preferredWidth: 60; Layout.preferredHeight: 28 }
 
                     HorizontalHeaderView {
+                        clip: true
                         Layout.fillWidth: true
                         Layout.preferredHeight: 28
                         syncView: leftTable
@@ -305,6 +306,7 @@ Item { Layout.fillWidth: true }
                     }
 
                     VerticalHeaderView {
+                        clip: true
                         Layout.preferredWidth: 60
                         Layout.fillHeight: true
                         syncView: leftTable
@@ -510,6 +512,7 @@ Item { Layout.fillWidth: true }
                     Item { Layout.preferredWidth: 60; Layout.preferredHeight: 28 }
 
                     HorizontalHeaderView {
+                        clip: true
                         Layout.fillWidth: true
                         Layout.preferredHeight: 28
                         syncView: rightTable
@@ -522,6 +525,7 @@ Item { Layout.fillWidth: true }
                     }
 
                     VerticalHeaderView {
+                        clip: true
                         Layout.preferredWidth: 60
                         Layout.fillHeight: true
                         syncView: rightTable
