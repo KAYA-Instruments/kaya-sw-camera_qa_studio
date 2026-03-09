@@ -61,7 +61,15 @@ public:
 
 
     
-    Q_INVOKABLE QVariantMap findFirstDiff() const;Q_INVOKABLE void refreshDiff();
+    Q_INVOKABLE QVariantMap findFirstDiff() const;
+
+    Q_INVOKABLE int nextDiffRow(int afterRow) const;
+    Q_INVOKABLE int prevDiffRow(int beforeRow) const;
+
+    Q_INVOKABLE int firstDiffColInRow(int row) const;
+    Q_INVOKABLE int nextDiffColInRow(int row, int afterCol) const;
+    Q_INVOKABLE int prevDiffColInRow(int row, int beforeCol) const;
+    Q_INVOKABLE void refreshDiff();
 
 signals:
     void specChanged();

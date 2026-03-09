@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <cstring>
 
 static QString normalizePixelFormat(const QString& s)
 {
@@ -339,7 +340,7 @@ QVariantMap RawPixelModel::findFirstDiff() const
         }
     }
 
-    out["ok"] = true;
+    out["ok"] = false;
     out["row"] = -1;
     out["col"] = -1;
     return out;
@@ -373,6 +374,132 @@ bool RawPixelModel::cellDiffers(int r, int c) const
     }
     return false;
 }
+
+int RawPixelModel::nextDiffRow(int afterRow) const
+{
+    if (!isComparableToOther()) return -1;
+
+    int start = afterRow + 1;
+    if (start < 0) start = 0;
+
+    const int bpp = bytesPerPixel();
+    const qint64 rowBytes = qint64(m_width) * qint64(bpp);
+
+    for (int r = start; r < m_height; ++r)
+    {
+        const qint64 off = qint64(r) * rowBytes;
+        if (off < 0 || off + rowBytes > m_mapSize) return -1;
+        if (off + rowBytes > m_other->m_mapSize) return -1;
+
+        if (std::memcmp(m_map + off, m_other->m_map + off, size_t(rowBytes)) != 0)
+        {
+            return r;
+        }
+    }
+
+    return -1;
+}
+
+int RawPixelModel::prevDiffRow(int beforeRow) const
+{
+    if (!isComparableToOther()) return -1;
+
+    int start = beforeRow - 1;
+    if (start >= m_height) start = m_height - 1;
+
+    const int bpp = bytesPerPixel();
+    const qint64 rowBytes = qint64(m_width) * qint64(bpp);
+
+    for (int r = start; r >= 0; --r)
+    {
+        const qint64 off = qint64(r) * rowBytes;
+        if (off < 0 || off + rowBytes > m_mapSize) return -1;
+        if (off + rowBytes > m_other->m_mapSize) return -1;
+
+        if (std::memcmp(m_map + off, m_other->m_map + off, size_t(rowBytes)) != 0)
+        {
+            return r;
+        }
+    }
+
+    return -1;
+}
+
+int RawPixelModel::firstDiffColInRow(int row) const
+{
+    if (!isComparableToOther()) return -1;
+    if (row < 0 || row >= m_height) return -1;
+
+    const int bpp = bytesPerPixel();
+    const qint64 rowOff = qint64(row) * qint64(m_width) * qint64(bpp);
+
+    for (int c = 0; c < m_width; ++c)
+    {
+        const qint64 off = rowOff + qint64(c) * qint64(bpp);
+        if (off < 0 || off + bpp > m_mapSize) return -1;
+        if (off + bpp > m_other->m_mapSize) return -1;
+
+        if (std::memcmp(m_map + off, m_other->m_map + off, size_t(bpp)) != 0)
+        {
+            return c;
+        }
+    }
+
+    return -1;
+}
+
+int RawPixelModel::nextDiffColInRow(int row, int afterCol) const
+{
+    if (!isComparableToOther()) return -1;
+    if (row < 0 || row >= m_height) return -1;
+
+    int start = afterCol + 1;
+    if (start < 0) start = 0;
+
+    const int bpp = bytesPerPixel();
+    const qint64 rowOff = qint64(row) * qint64(m_width) * qint64(bpp);
+
+    for (int c = start; c < m_width; ++c)
+    {
+        const qint64 off = rowOff + qint64(c) * qint64(bpp);
+        if (off < 0 || off + bpp > m_mapSize) return -1;
+        if (off + bpp > m_other->m_mapSize) return -1;
+
+        if (std::memcmp(m_map + off, m_other->m_map + off, size_t(bpp)) != 0)
+        {
+            return c;
+        }
+    }
+
+    return -1;
+}
+
+int RawPixelModel::prevDiffColInRow(int row, int beforeCol) const
+{
+    if (!isComparableToOther()) return -1;
+    if (row < 0 || row >= m_height) return -1;
+
+    int start = beforeCol - 1;
+    if (start >= m_width) start = m_width - 1;
+
+    const int bpp = bytesPerPixel();
+    const qint64 rowOff = qint64(row) * qint64(m_width) * qint64(bpp);
+
+    for (int c = start; c >= 0; --c)
+    {
+        const qint64 off = rowOff + qint64(c) * qint64(bpp);
+        if (off < 0 || off + bpp > m_mapSize) return -1;
+        if (off + bpp > m_other->m_mapSize) return -1;
+
+        if (std::memcmp(m_map + off, m_other->m_map + off, size_t(bpp)) != 0)
+        {
+            return c;
+        }
+    }
+
+    return -1;
+}
+
 
 quint8 RawPixelModel::byteAt(qint64 off) const
 {

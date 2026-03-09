@@ -34,13 +34,98 @@ ApplicationWindow {
 
     property bool _syncGuard: false
 
+    property int diffRow: -1
+    property int diffCol: -1
+    property bool hasPrevDiffRow: false
+    property bool hasNextDiffRow: false
+    property bool hasPrevDiffCol: false
+    property bool hasNextDiffCol: false
+
+
     function baseName(p) {
         if (!p || p.length === 0) return ""
         var parts = p.split(/[\/\\]/)
         return parts.length ? parts[parts.length - 1] : p
     }
 
-    Timer {
+    
+    function updateNavAvailability() {
+        if (diffRow < 0 || diffCol < 0) {
+            hasPrevDiffRow = false
+            hasNextDiffRow = false
+            hasPrevDiffCol = false
+            hasNextDiffCol = false
+            return
+        }
+
+        hasPrevDiffRow = leftModel.prevDiffRow(diffRow) >= 0
+        hasNextDiffRow = leftModel.nextDiffRow(diffRow) >= 0
+
+        hasPrevDiffCol = leftModel.prevDiffColInRow(diffRow, diffCol) >= 0
+        hasNextDiffCol = leftModel.nextDiffColInRow(diffRow, diffCol) >= 0
+    }
+
+    function jumpToPrevDiffRow() {
+        if (diffRow < 0) return
+        var r = leftModel.prevDiffRow(diffRow)
+        if (r < 0) return
+        var c = leftModel.firstDiffColInRow(r)
+        if (c < 0) c = 0
+        diffRow = r
+        diffCol = c
+        updateNavAvailability()
+        requestJumpToExact(diffRow, diffCol)
+    }
+
+    function jumpToNextDiffRow() {
+        if (diffRow < 0) return
+        var r = leftModel.nextDiffRow(diffRow)
+        if (r < 0) return
+        var c = leftModel.firstDiffColInRow(r)
+        if (c < 0) c = 0
+        diffRow = r
+        diffCol = c
+        updateNavAvailability()
+        requestJumpToExact(diffRow, diffCol)
+    }
+
+    function jumpToPrevDiffCol() {
+        if (diffRow < 0 || diffCol < 0) return
+        var c = leftModel.prevDiffColInRow(diffRow, diffCol)
+        if (c < 0) return
+        diffCol = c
+        updateNavAvailability()
+        requestJumpToExact(diffRow, diffCol)
+    }
+
+    function jumpToNextDiffCol() {
+        if (diffRow < 0 || diffCol < 0) return
+        var c = leftModel.nextDiffColInRow(diffRow, diffCol)
+        if (c < 0) return
+        diffCol = c
+        updateNavAvailability()
+        requestJumpToExact(diffRow, diffCol)
+    }
+
+    function requestJumpToExact(row, col) {
+        // Use same clamping logic as jumpToFirstDiff()
+        var targetX = col * leftTable.cellWidth
+        var targetY = row * leftTable.cellHeight
+
+        var maxX = Math.max(0, leftTable.contentWidth - leftTable.width)
+        var maxY = Math.max(0, leftTable.contentHeight - leftTable.height)
+        if (targetX > maxX) targetX = maxX
+        if (targetY > maxY) targetY = maxY
+
+        _syncGuard = true
+        leftTable.contentX = targetX
+        leftTable.contentY = targetY
+        rightTable.contentX = targetX
+        rightTable.contentY = targetY
+        _syncGuard = false
+    }
+
+Timer {
         id: jumpToDiffTimer
         interval: 0
         repeat: false
@@ -55,24 +140,18 @@ ApplicationWindow {
     function jumpToFirstDiff() {
         // Find first mismatch (row-major). Works only when both sides are comparable.
         var res = leftModel.findFirstDiff()
-        if (!res || !res.ok) return
-        if (res.row < 0 || res.col < 0) return
+        if (!res || !res.ok || res.row < 0 || res.col < 0) {
+            diffRow = -1
+            diffCol = -1
+            updateNavAvailability()
+            return
+        }
 
-        var targetX = res.col * leftTable.cellWidth
-        var targetY = res.row * leftTable.cellHeight
+        diffRow = res.row
+        diffCol = res.col
+        updateNavAvailability()
 
-        // Clamp (in case view size/content size is not yet fully resolved)
-        var maxX = Math.max(0, leftTable.contentWidth - leftTable.width)
-        var maxY = Math.max(0, leftTable.contentHeight - leftTable.height)
-        if (targetX > maxX) targetX = maxX
-        if (targetY > maxY) targetY = maxY
-
-        _syncGuard = true
-        leftTable.contentX = targetX
-        leftTable.contentY = targetY
-        rightTable.contentX = targetX
-        rightTable.contentY = targetY
-        _syncGuard = false
+        requestJumpToExact(diffRow, diffCol)
     }
 
 
@@ -81,7 +160,12 @@ ApplicationWindow {
             anchors.fill: parent
             spacing: 10
 
-            Item { Layout.fillWidth: true }
+            
+            ToolButton { text: "▲"; enabled: hasPrevDiffRow; onClicked: jumpToPrevDiffRow() }
+            ToolButton { text: "▼"; enabled: hasNextDiffRow; onClicked: jumpToNextDiffRow() }
+            ToolButton { text: "◀"; enabled: hasPrevDiffCol; onClicked: jumpToPrevDiffCol() }
+            ToolButton { text: "▶"; enabled: hasNextDiffCol; onClicked: jumpToNextDiffCol() }
+Item { Layout.fillWidth: true }
         }
     }
 
@@ -265,6 +349,7 @@ ApplicationWindow {
                                 onTapped: {
                                     leftTable.currentRow = row
                                     leftTable.currentColumn = column
+                                    if (model.isDiff) { diffRow = row; diffCol = column; updateNavAvailability(); }
                                     if (!_syncGuard) {
                                         _syncGuard = true
                                         rightTable.currentRow = row
@@ -481,6 +566,7 @@ ApplicationWindow {
                                 onTapped: {
                                     rightTable.currentRow = row
                                     rightTable.currentColumn = column
+                                    if (model.isDiff) { diffRow = row; diffCol = column; updateNavAvailability(); }
                                     if (!_syncGuard) {
                                         _syncGuard = true
                                         leftTable.currentRow = row
