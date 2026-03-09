@@ -313,6 +313,39 @@ void RawPixelModel::setCompareTo(QObject* otherModel)
     if (m_other) m_other->refreshDiff();
 }
 
+QVariantMap RawPixelModel::findFirstDiff() const
+{
+    QVariantMap out;
+
+    if (!isComparableToOther())
+    {
+        out["ok"] = false;
+        out["row"] = -1;
+        out["col"] = -1;
+        return out;
+    }
+
+    for (int r = 0; r < m_height; ++r)
+    {
+        for (int c = 0; c < m_width; ++c)
+        {
+            if (cellDiffers(r, c))
+            {
+                out["ok"] = true;
+                out["row"] = r;
+                out["col"] = c;
+                return out;
+            }
+        }
+    }
+
+    out["ok"] = true;
+    out["row"] = -1;
+    out["col"] = -1;
+    return out;
+}
+
+
 bool RawPixelModel::isComparableToOther() const
 {
     if (!m_other) return false;

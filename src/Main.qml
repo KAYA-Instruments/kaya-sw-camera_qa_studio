@@ -18,7 +18,20 @@ ApplicationWindow {
         rightModel.setCompareTo(leftModel)
     }
 
-    property bool linkScroll: true
+    Connections {
+        target: leftModel
+        function onFileChanged() { requestJumpToFirstDiff() }
+        function onSpecChanged() { requestJumpToFirstDiff() }
+        function onSizeStatusChanged() { requestJumpToFirstDiff() }
+    }
+
+    Connections {
+        target: rightModel
+        function onFileChanged() { requestJumpToFirstDiff() }
+        function onSpecChanged() { requestJumpToFirstDiff() }
+        function onSizeStatusChanged() { requestJumpToFirstDiff() }
+    }
+
     property bool _syncGuard: false
 
     function baseName(p) {
@@ -27,16 +40,46 @@ ApplicationWindow {
         return parts.length ? parts[parts.length - 1] : p
     }
 
+    Timer {
+        id: jumpToDiffTimer
+        interval: 0
+        repeat: false
+        onTriggered: jumpToFirstDiff()
+    }
+
+    function requestJumpToFirstDiff() {
+        jumpToDiffTimer.stop()
+        jumpToDiffTimer.start()
+    }
+
+    function jumpToFirstDiff() {
+        // Find first mismatch (row-major). Works only when both sides are comparable.
+        var res = leftModel.findFirstDiff()
+        if (!res || !res.ok) return
+        if (res.row < 0 || res.col < 0) return
+
+        var targetX = res.col * leftTable.cellWidth
+        var targetY = res.row * leftTable.cellHeight
+
+        // Clamp (in case view size/content size is not yet fully resolved)
+        var maxX = Math.max(0, leftTable.contentWidth - leftTable.width)
+        var maxY = Math.max(0, leftTable.contentHeight - leftTable.height)
+        if (targetX > maxX) targetX = maxX
+        if (targetY > maxY) targetY = maxY
+
+        _syncGuard = true
+        leftTable.contentX = targetX
+        leftTable.contentY = targetY
+        rightTable.contentX = targetX
+        rightTable.contentY = targetY
+        _syncGuard = false
+    }
+
+
     header: ToolBar {
         RowLayout {
             anchors.fill: parent
             spacing: 10
-
-            CheckBox {
-                text: "Link scroll"
-                checked: linkScroll
-                onToggled: linkScroll = checked
-            }
 
             Item { Layout.fillWidth: true }
         }
@@ -222,7 +265,7 @@ ApplicationWindow {
                                 onTapped: {
                                     leftTable.currentRow = row
                                     leftTable.currentColumn = column
-                                    if (linkScroll && !_syncGuard) {
+                                    if (!_syncGuard) {
                                         _syncGuard = true
                                         rightTable.currentRow = row
                                         rightTable.currentColumn = column
@@ -238,13 +281,13 @@ ApplicationWindow {
                         }
 
                         onContentXChanged: {
-                            if (!linkScroll || _syncGuard) return
+                            if (_syncGuard) return
                             _syncGuard = true
                             rightTable.contentX = contentX
                             _syncGuard = false
                         }
                         onContentYChanged: {
-                            if (!linkScroll || _syncGuard) return
+                            if (_syncGuard) return
                             _syncGuard = true
                             rightTable.contentY = contentY
                             _syncGuard = false
@@ -438,7 +481,7 @@ ApplicationWindow {
                                 onTapped: {
                                     rightTable.currentRow = row
                                     rightTable.currentColumn = column
-                                    if (linkScroll && !_syncGuard) {
+                                    if (!_syncGuard) {
                                         _syncGuard = true
                                         leftTable.currentRow = row
                                         leftTable.currentColumn = column
@@ -454,13 +497,13 @@ ApplicationWindow {
                         }
 
                         onContentXChanged: {
-                            if (!linkScroll || _syncGuard) return
+                            if (_syncGuard) return
                             _syncGuard = true
                             leftTable.contentX = contentX
                             _syncGuard = false
                         }
                         onContentYChanged: {
-                            if (!linkScroll || _syncGuard) return
+                            if (_syncGuard) return
                             _syncGuard = true
                             leftTable.contentY = contentY
                             _syncGuard = false

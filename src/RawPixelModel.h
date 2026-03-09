@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QPointer>
 #include <QUrl>
+#include <QVariantMap>
 
 class RawPixelModel : public QAbstractTableModel
 {
@@ -59,7 +60,8 @@ public:
     Q_INVOKABLE void setCompareTo(QObject* otherModel);
 
 
-    Q_INVOKABLE void refreshDiff();
+    
+    Q_INVOKABLE QVariantMap findFirstDiff() const;Q_INVOKABLE void refreshDiff();
 
 signals:
     void specChanged();
