@@ -2,7 +2,90 @@
 
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QDir>
 #include <cstring>
+
+static QString normalizePixelFormat(const QString& s);
+
+static QVariantMap inferFromTomlFile(const QString& tomlPath)
+{
+    QVariantMap out;
+
+    QFile f(tomlPath);
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        out["ok"] = false;
+        return out;
+    }
+
+    const QString txt = QString::fromUtf8(f.readAll());
+
+    // Minimal TOML parsing for this viewer: only Width, Height, PixelFormat
+    const QRegularExpression reW(R"((?:^|\n)\s*Width\s*=\s*(\d+)\s*(?:\n|$))",
+                                 QRegularExpression::MultilineOption);
+    const QRegularExpression reH(R"((?:^|\n)\s*Height\s*=\s*(\d+)\s*(?:\n|$))",
+                                 QRegularExpression::MultilineOption);
+    const QRegularExpression reP(
+        R"toml((?:^|\n)\s*PixelFormat\s*=\s*"?([A-Za-z0-9_]+)"?\s*(?:\n|$))toml",
+        QRegularExpression::MultilineOption);
+
+    bool any = false;
+
+    const auto mW = reW.match(txt);
+    if (mW.hasMatch())
+    {
+        out["width"] = mW.captured(1).toInt();
+        any = true;
+    }
+
+    const auto mH = reH.match(txt);
+    if (mH.hasMatch())
+    {
+        out["height"] = mH.captured(1).toInt();
+        any = true;
+    }
+
+    const auto mP = reP.match(txt);
+    if (mP.hasMatch())
+    {
+        out["pixelFormat"] = normalizePixelFormat(mP.captured(1));
+        any = true;
+    }
+
+    out["ok"] = any;
+    return out;
+}
+
+static QVariantMap inferSpecFromRawFileReference(const QString& rawFilePath)
+{
+    QVariantMap out;
+
+    const QFileInfo fi(rawFilePath);
+    const QString fileName = fi.fileName();
+
+    // Example: "--refconfig 640x640_Mono8_Diagonal.toml - Ref.raw"
+    // Capture exactly the TOML path argument; do NOT infer anything from the TOML filename itself.
+    const QRegularExpression reRefCfg(R"(--refconfig\s+(.+?\.toml))",
+                                      QRegularExpression::CaseInsensitiveOption);
+    const auto mCfg = reRefCfg.match(fileName);
+    if (!mCfg.hasMatch())
+    {
+        out["ok"] = false;
+        return out;
+    }
+
+    QString ref = mCfg.captured(1).trimmed();
+
+    // Trim optional surrounding quotes
+    if (ref.size() >= 2 &&
+        ((ref.startsWith('"') && ref.endsWith('"')) || (ref.startsWith('\'') && ref.endsWith('\''))))
+    {
+        ref = ref.mid(1, ref.size() - 2);
+    }
+
+    const QString tomlPath = QDir(fi.absolutePath()).filePath(ref);
+    return inferFromTomlFile(tomlPath);
+}
 
 static QString normalizePixelFormat(const QString& s)
 {
@@ -312,7 +395,19 @@ QVariantMap RawPixelModel::inferSpecFromFileName(const QUrl& url)
 {
     const QString path = url.isLocalFile() ? url.toLocalFile() : url.toString();
     const QFileInfo fi(path);
-    const QVariantMap inferred = inferFromNameToMap(fi.fileName());
+
+    QVariantMap inferred = inferFromNameToMap(fi.fileName());
+
+    // If the raw filename points to a TOML via --refconfig, parse that file and
+    // use any missing Width/Height/PixelFormat from TOML content.
+    const QVariantMap toml = inferSpecFromRawFileReference(path);
+    if (toml.value("ok").toBool())
+    {
+        if (!inferred.contains("width") && toml.contains("width")) inferred["width"] = toml.value("width");
+        if (!inferred.contains("height") && toml.contains("height")) inferred["height"] = toml.value("height");
+        if (!inferred.contains("pixelFormat") && toml.contains("pixelFormat")) inferred["pixelFormat"] = toml.value("pixelFormat");
+        inferred["ok"] = inferred.contains("width") || inferred.contains("height") || inferred.contains("pixelFormat");
+    }
 
     if (inferred.value("ok").toBool())
     {
@@ -327,7 +422,19 @@ QVariantMap RawPixelModel::inferSpecFromFileName(const QUrl& url)
 QVariantMap RawPixelModel::inferSpecFromFilePath(const QString& path)
 {
     const QFileInfo fi(path);
-    const QVariantMap inferred = inferFromNameToMap(fi.fileName());
+
+    QVariantMap inferred = inferFromNameToMap(fi.fileName());
+
+    // If the raw filename points to a TOML via --refconfig, parse that file and
+    // use any missing Width/Height/PixelFormat from TOML content.
+    const QVariantMap toml = inferSpecFromRawFileReference(path);
+    if (toml.value("ok").toBool())
+    {
+        if (!inferred.contains("width") && toml.contains("width")) inferred["width"] = toml.value("width");
+        if (!inferred.contains("height") && toml.contains("height")) inferred["height"] = toml.value("height");
+        if (!inferred.contains("pixelFormat") && toml.contains("pixelFormat")) inferred["pixelFormat"] = toml.value("pixelFormat");
+        inferred["ok"] = inferred.contains("width") || inferred.contains("height") || inferred.contains("pixelFormat");
+    }
 
     if (inferred.value("ok").toBool())
     {
