@@ -8,6 +8,17 @@ static QString normalizePixelFormat(const QString& s)
 {
     const QString t = s.trimmed();
     if (t.isEmpty()) return "Mono8";
+
+    // Accept Bayer{RG,GR,GB,BG}{8,10,12,14,16} and normalize to Mono{bits}.
+    static const QRegularExpression reBayer(
+        R"(^Bayer(?:RG|GR|GB|BG)(8|10|12|14|16)$)",
+        QRegularExpression::CaseInsensitiveOption);
+    const auto mb = reBayer.match(t);
+    if (mb.hasMatch())
+    {
+        return "Mono" + mb.captured(1);
+    }
+
     return t;
 }
 
@@ -15,9 +26,9 @@ static QVariantMap inferFromNameToMap(const QString& fileName)
 {
     QVariantMap out;
 
-    const QRegularExpression reW(R"(--Width\s+(\d+))");
-    const QRegularExpression reH(R"(--Height\s+(\d+))");
-    const QRegularExpression reP(R"(--PixelFormat\s+([A-Za-z0-9_]+))");
+    static const QRegularExpression reW(R"(--Width\s+(\d+))");
+    static const QRegularExpression reH(R"(--Height\s+(\d+))");
+    static const QRegularExpression reP(R"(--PixelFormat\s+([A-Za-z0-9_]+))");
 
     const auto mW = reW.match(fileName);
     const auto mH = reH.match(fileName);
@@ -37,7 +48,21 @@ static QVariantMap inferFromNameToMap(const QString& fileName)
     }
     if (mP.hasMatch())
     {
-        out["pixelFormat"] = mP.captured(1);
+        QString pf = mP.captured(1);
+
+        // Accept Bayer{RG,GR,GB,BG}{8,10,12,14,16} from filename and normalize to Mono{bits}
+        // (for this hex viewer Bayer storage is identical to Mono with same bit depth).
+        static const QRegularExpression reBayer(
+            R"(^Bayer(?:RG|GR|GB|BG)(8|10|12|14|16)$)",
+            QRegularExpression::CaseInsensitiveOption);
+
+        const auto mb = reBayer.match(pf);
+        if (mb.hasMatch())
+        {
+            pf = "Mono" + mb.captured(1);
+        }
+
+        out["pixelFormat"] = pf;
         any = true;
     }
 
@@ -58,14 +83,25 @@ RawPixelModel::~RawPixelModel()
 int RawPixelModel::bytesPerPixel() const
 {
     const QString pf = m_pixelFormat.trimmed();
-    if (pf.compare("Mono8", Qt::CaseInsensitive) == 0) return 1;
 
-    // Minimal viewer: treat Mono10/Mono12/Mono16 as stored in 16-bit (2 bytes/pixel)
+    // Mono{8,10,12,14,16}
+    if (pf.compare("Mono8", Qt::CaseInsensitive) == 0) return 1;
     if (pf.compare("Mono10", Qt::CaseInsensitive) == 0) return 2;
     if (pf.compare("Mono12", Qt::CaseInsensitive) == 0) return 2;
+    if (pf.compare("Mono14", Qt::CaseInsensitive) == 0) return 2;
     if (pf.compare("Mono16", Qt::CaseInsensitive) == 0) return 2;
 
-    // Default fallback
+    // Bayer{RG,GR,GB,BG}{8,10,12,14,16} (same storage as Mono for this viewer)
+    static const QRegularExpression reBayer(
+        R"(^Bayer(?:RG|GR|GB|BG)(8|10|12|14|16)$)",
+        QRegularExpression::CaseInsensitiveOption);
+    const auto mb = reBayer.match(pf);
+    if (mb.hasMatch())
+    {
+        const int bits = mb.captured(1).toInt();
+        return (bits <= 8) ? 1 : 2;
+    }
+
     return 1;
 }
 
