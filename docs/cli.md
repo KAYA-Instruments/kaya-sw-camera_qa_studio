@@ -167,21 +167,21 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT:UINT in [0 - 4294967295]</code></td>
       <td class="col-default"><code>0</code></td>
-      <td class="col-desc">Test pattern value minimum (applied as: value = min + base * step). When --reftpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
+      <td class="col-desc">Test pattern value minimum (applied as: value = min + base * step). When --reftpg-RespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--TestPatternValueMax</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>INT:INT in [-1 - 4294967295]</code></td>
       <td class="col-default"><code>4095</code></td>
-      <td class="col-desc">Test pattern value maximum. Use -1 to auto-calculate from --PixelFormat bit depth. When --reftpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
+      <td class="col-desc">Test pattern value maximum. Use -1 to auto-calculate from --PixelFormat bit depth. When --reftpg-RespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--TestPatternValueStep</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT:UINT in [1 - 4294967295]</code></td>
       <td class="col-default"><code>1</code></td>
-      <td class="col-desc">Test pattern value step (applied as: value = min + base * step). When --reftpgRespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
+      <td class="col-desc">Test pattern value step (applied as: value = min + base * step). When --reftpg-RespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--reftpg-mode</code></td>
@@ -205,32 +205,32 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-desc">TPG internal bit depth (independent of PixelFormat)</td>
     </tr>
     <tr>
-      <td class="col-option"><code>--reftpgRespectPixelFormat</code></td>
+      <td class="col-option"><code>--reftpg-RespectPixelFormat</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>BOOLEAN</code></td>
       <td class="col-default"><code>true</code></td>
-      <td class="col-desc">When true (default), scale TPG so that --PixelFormat bit depth is respected (emulate fixed firmware). When false, keep legacy behavior: TPG operates purely in internal --reftpg-bpp domain (emulate buggy firmware).</td>
+      <td class="col-desc">When true, generate the visible test pattern in the output PixelFormat bit depth. Example: for Mono8, the ramp is defined in the 0..255 domain. When false, generate the pattern directly in the internal --reftpg-bpp domain instead. Use false to emulate legacy or buggy firmware that ignores PixelFormat during TPG generation.</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--reftpg-ramp</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{native,fullscale}</code></td>
+      <td class="col-default"><code>native</code></td>
+      <td class="col-desc">Ramp progression mode: native or fullscale. native uses x, y, or x+y directly; fullscale normalizes the ramp so it spans the full available range across the image extent.</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--reftpg-overflow</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{wrap,saturate}</code></td>
+      <td class="col-default"><code>wrap</code></td>
+      <td class="col-desc">Overflow handling for generated ramp values: wrap or saturate. Example for Mono8 diagonal ramp near overflow: wrap -&gt; ... FC FD FE FF 00 01 02 ..., saturate -&gt; ... FC FD FE FF FF FF FF ... . For fullscale ramps this usually has no visible effect because values are already inside range.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--reftpg-clamp</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code></code></td>
       <td class="col-default"><code></code></td>
-      <td class="col-desc">Clamp TPG values to output bit depth (off by default)</td>
-    </tr>
-    <tr>
-      <td class="col-option"><code>--reftpg-fullscale</code></td>
-      <td class="col-required">no</td>
-      <td class="col-type"><code></code></td>
-      <td class="col-default"><code></code></td>
-      <td class="col-desc">Internal: generate full-scale ramps in output bit depth (non-firmware policy)</td>
-    </tr>
-    <tr>
-      <td class="col-option"><code>--reftpg-modulo</code></td>
-      <td class="col-required">no</td>
-      <td class="col-type"><code></code></td>
-      <td class="col-default"><code></code></td>
-      <td class="col-desc">Internal: generate modulo-wrapped ramps in output bit depth (non-firmware policy)</td>
+      <td class="col-desc">Clamp intermediate internal-domain values to the --reftpg-bpp range before storing them in the generated frame. This is an additional internal safety clamp; it does not define the visible ramp style and does not replace --reftpg-overflow.</td>
     </tr>
   </tbody>
 </table>
@@ -491,7 +491,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>:FILE</code></td>
       <td class="col-default"><code></code></td>
-      <td class="col-desc">Config file (TOML/INI). Command line options override config.</td>
+      <td class="col-desc">Config file (TOML/INI). Later config files may override earlier ones; command line options override config.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--refversion</code></td>
