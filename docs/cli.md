@@ -232,6 +232,13 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-default"><code></code></td>
       <td class="col-desc">Clamp intermediate internal-domain values to the --reftpg-bpp range before storing them in the generated frame. This is an additional internal safety clamp; it does not define the visible ramp style and does not replace --reftpg-overflow.</td>
     </tr>
+    <tr>
+      <td class="col-option"><code>--reftpg-fixedpoint</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{truncate,nearest}</code></td>
+      <td class="col-default"><code>truncate</code></td>
+      <td class="col-desc">Fixed-point rounding mode for FPGA-style arithmetic (truncate|nearest)</td>
+    </tr>
   </tbody>
 </table>
 </div>
@@ -278,6 +285,46 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-type"><code>BOOLEAN</code></td>
       <td class="col-default"><code>true</code></td>
       <td class="col-desc">When true (default), BlackLevelSelector=All is an independent offset that is ADDED to per-channel black levels (SFNC-style). When false, BlackLevelSelector=All overrides per-channel values and cannot be mixed with them (legacy camera behavior).</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group">
+  <summary class="cli-summary">Digital gain</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-option"><code>--GainSelector</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{DigitalAll,DigitalRed,DigitalGreen,DigitalBlue}</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Select channel for the next --Gain (DigitalAll|DigitalRed|DigitalGreen|DigitalBlue)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--Gain</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>FLOAT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Set gain for the channel selected by the immediately preceding --GainSelector (encoded using current --reftpg-fraction)</td>
     </tr>
   </tbody>
 </table>
