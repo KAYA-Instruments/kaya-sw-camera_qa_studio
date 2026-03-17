@@ -180,14 +180,15 @@ Item { Layout.fillWidth: true }
         }
     }
 
-    ColumnLayout {
+    SplitView {
+        id: rootSplit
         anchors.fill: parent
-        spacing: 6
+        orientation: Qt.Vertical
 
         SplitView {
             id: mainSplit
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+            SplitView.fillWidth: true
+            SplitView.fillHeight: true
             orientation: Qt.Horizontal
 
         // LEFT PANE
@@ -631,14 +632,21 @@ Item { Layout.fillWidth: true }
     }
 
         Frame {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 160
+            id: logFrame
+            SplitView.fillWidth: true
+            SplitView.fillHeight: true
+            SplitView.preferredHeight: 180
+            SplitView.minimumHeight: 80
 
             ColumnLayout {
                 anchors.fill: parent
                 spacing: 4
 
-                Label { text: "Log" }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Label { text: "Log"; Layout.fillWidth: true }
+                    Button { text: "Clear"; onClicked: logText = "" }
+                }
 
                 ScrollView {
                     Layout.fillWidth: true
