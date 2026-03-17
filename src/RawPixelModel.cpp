@@ -79,54 +79,73 @@ static QVariantMap inferFromNameToMap(const QString& fileName, const QString& ra
     QVariantMap out;
     bool any = false;
 
-    static const QRegularExpression reArg(
-        R"arg((?<refcfg>--refconfig\s+(?:"(?<ref_dq>[^"]+\.toml)"|'(?<ref_sq>[^']+\.toml)'|(?<ref_plain>[^\s]+\.toml)))|(?<width>--Width\s+(?<width_val>\d+))|(?<height>--Height\s+(?<height_val>\d+))|(?<pixfmt>--PixelFormat\s+(?<pixfmt_val>[A-Za-z0-9_]+)))arg",
-        QRegularExpression::CaseInsensitiveOption);
+    const QStringList tokens = fileName.split(QRegularExpression(R"(\s+)"), Qt::SkipEmptyParts);
 
-    auto it = reArg.globalMatch(fileName);
-    while (it.hasNext())
+    for (int i = 0; i < tokens.size(); ++i)
     {
-        const auto m = it.next();
+        const QString t = tokens[i];
 
-        if (!m.captured("refcfg").isEmpty())
+        if (t.compare("--Width", Qt::CaseInsensitive) == 0)
         {
-            QString ref = m.captured("ref_dq");
-            if (ref.isEmpty()) ref = m.captured("ref_sq");
-            if (ref.isEmpty()) ref = m.captured("ref_plain");
+            if (i + 1 < tokens.size())
+            {
+                out["width"] = tokens[i + 1].toInt();
+                any = true;
+                ++i;
+            }
+            continue;
+        }
+
+        if (t.compare("--Height", Qt::CaseInsensitive) == 0)
+        {
+            if (i + 1 < tokens.size())
+            {
+                out["height"] = tokens[i + 1].toInt();
+                any = true;
+                ++i;
+            }
+            continue;
+        }
+
+        if (t.compare("--PixelFormat", Qt::CaseInsensitive) == 0)
+        {
+            if (i + 1 < tokens.size())
+            {
+                out["pixelFormat"] = normalizePixelFormat(tokens[i + 1]);
+                any = true;
+                ++i;
+            }
+            continue;
+        }
+
+        // If a token ends with ".toml" -> treat it as a TOML config file name to be processed.
+        if (t.endsWith(".toml", Qt::CaseInsensitive))
+        {
+            QString ref = t;
+            if ((ref.startsWith('"') && ref.endsWith('"')) || (ref.startsWith('\'') && ref.endsWith('\'')))
+            {
+                ref = ref.mid(1, ref.size() - 2);
+            }
 
             if (!ref.isEmpty())
             {
                 const QString tomlPath = QDir(rawDirPath).filePath(ref);
-                const QVariantMap t = inferFromTomlFile(tomlPath);
-                if (t.value("ok").toBool())
+                const QVariantMap cfg = inferFromTomlFile(tomlPath);
+                if (cfg.value("ok").toBool())
                 {
-                    if (t.contains("width")) out["width"] = t.value("width");
-                    if (t.contains("height")) out["height"] = t.value("height");
-                    if (t.contains("pixelFormat")) out["pixelFormat"] = t.value("pixelFormat");
+                    if (cfg.contains("width")) out["width"] = cfg.value("width");
+                    if (cfg.contains("height")) out["height"] = cfg.value("height");
+                    if (cfg.contains("pixelFormat")) out["pixelFormat"] = cfg.value("pixelFormat");
                     any = true;
                 }
             }
-        }
-        else if (!m.captured("width").isEmpty())
-        {
-            out["width"] = m.captured("width_val").toInt();
-            any = true;
-        }
-        else if (!m.captured("height").isEmpty())
-        {
-            out["height"] = m.captured("height_val").toInt();
-            any = true;
-        }
-        else if (!m.captured("pixfmt").isEmpty())
-        {
-            out["pixelFormat"] = normalizePixelFormat(m.captured("pixfmt_val"));
-            any = true;
         }
     }
 
     out["ok"] = any;
     return out;
 }
+
 
 RawPixelModel::RawPixelModel(QObject* parent)
     : QAbstractTableModel(parent)
