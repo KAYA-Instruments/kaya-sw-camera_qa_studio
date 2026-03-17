@@ -1,5 +1,6 @@
 #include "RawPixelModel.h"
 
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QDir>
@@ -129,7 +130,39 @@ static QVariantMap inferFromNameToMap(const QString& fileName, const QString& ra
 
             if (!ref.isEmpty())
             {
-                const QString tomlPath = QDir(rawDirPath).filePath(ref);
+                QString tomlPath;
+                QStringList dirsToTry;
+                dirsToTry.append(rawDirPath);
+
+                // 1-level parent of the RAW directory
+                {
+                    QDir parentDir(rawDirPath);
+                    if (parentDir.cdUp())
+                    {
+                        dirsToTry.append(parentDir.absolutePath());
+                    }
+                }
+
+                // Directory of the executable
+                dirsToTry.append(QCoreApplication::applicationDirPath());
+
+                // Environment variables
+                const QString vp2 = QString::fromLocal8Bit(qgetenv("KAYA_VISION_POINT_2_CONF")).trimmed();
+                if (!vp2.isEmpty()) dirsToTry.append(vp2);
+
+                const QString vp1 = QString::fromLocal8Bit(qgetenv("KAYA_VISION_POINT_CONF")).trimmed();
+                if (!vp1.isEmpty()) dirsToTry.append(vp1);
+
+                for (const QString& d : dirsToTry)
+                {
+                    const QString candidate = QDir(d).filePath(ref);
+                    if (QFileInfo::exists(candidate))
+                    {
+                        tomlPath = candidate;
+                        break;
+                    }
+                }
+
                 const QVariantMap cfg = inferFromTomlFile(tomlPath);
                 if (cfg.value("ok").toBool())
                 {
