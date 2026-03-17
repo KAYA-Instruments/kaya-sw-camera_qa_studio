@@ -1,5 +1,13 @@
 <RCC>
-  <qresource prefix="/">
-    <file>Main.qml</file>
-  </qresource>
+    <qresource prefix="/">
+        <file>Main.qml</file>
+
+        <!-- App / taskbar icon (small, high-contrast) -->
+        <file>icons/kaya_sw_camera_qa_studio_app.ico</file>
+        <file>icons/kaya_sw_camera_qa_studio_app.png</file>
+
+        <!-- Detailed icon (About / docs) -->
+        <file>icons/kaya-sw-camera_qa_studio.ico</file>
+        <file>icons/kaya-sw-camera_qa_studio.png</file>
+    </qresource>
 </RCC>

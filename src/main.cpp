@@ -1,4 +1,6 @@
 #include <QGuiApplication>
+#include <QCoreApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 
 #include "RawPixelModel.h"
@@ -6,6 +8,8 @@
 int main(int argc, char* argv[])
 {
     QGuiApplication app(argc, argv);
+
+    app.setWindowIcon(QIcon(":/icons/kaya_sw_camera_qa_studio_app.ico"));
 
     qmlRegisterType<RawPixelModel>("RawTwin", 1, 0, "RawPixelModel");
 
