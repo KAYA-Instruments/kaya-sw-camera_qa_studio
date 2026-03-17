@@ -73,6 +73,7 @@ public:
 
 signals:
     void specChanged();
+    void logMessage(const QString& message);
     void fileChanged();
     void sizeStatusChanged();
 

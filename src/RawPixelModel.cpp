@@ -1,10 +1,10 @@
 #include "RawPixelModel.h"
 
-#include <QCoreApplication>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QDir>
 #include <cstring>
+#include <QCoreApplication>
 
 static QString normalizePixelFormat(const QString& s);
 
@@ -78,6 +78,7 @@ static QString normalizePixelFormat(const QString& s)
 static QVariantMap inferFromNameToMap(const QString& fileName, const QString& rawDirPath)
 {
     QVariantMap out;
+    QStringList logs;
     bool any = false;
 
     const QStringList tokens = fileName.split(QRegularExpression(R"(\s+)"), Qt::SkipEmptyParts);
@@ -128,30 +129,49 @@ static QVariantMap inferFromNameToMap(const QString& fileName, const QString& ra
                 ref = ref.mid(1, ref.size() - 2);
             }
 
-            if (!ref.isEmpty())
+            if (ref.isEmpty())
             {
-                QString tomlPath;
+                continue;
+            }
+
+            QString tomlPath;
+
+            // If token is an absolute path, try it directly first.
+            const QFileInfo refFi(ref);
+            if (refFi.isAbsolute())
+            {
+                if (refFi.exists())
+                {
+                    tomlPath = refFi.absoluteFilePath();
+                }
+                else
+                {
+                    logs << QString("%1 was not found in %2").arg(refFi.fileName(), refFi.absolutePath());
+                }
+            }
+            else
+            {
                 QStringList dirsToTry;
-                dirsToTry.append(rawDirPath);
+                dirsToTry << rawDirPath;
 
                 // 1-level parent of the RAW directory
                 {
                     QDir parentDir(rawDirPath);
                     if (parentDir.cdUp())
                     {
-                        dirsToTry.append(parentDir.absolutePath());
+                        dirsToTry << parentDir.absolutePath();
                     }
                 }
 
                 // Directory of the executable
-                dirsToTry.append(QCoreApplication::applicationDirPath());
+                dirsToTry << QCoreApplication::applicationDirPath();
 
                 // Environment variables
                 const QString vp2 = QString::fromLocal8Bit(qgetenv("KAYA_VISION_POINT_2_CONF")).trimmed();
-                if (!vp2.isEmpty()) dirsToTry.append(vp2);
+                if (!vp2.isEmpty()) dirsToTry << vp2;
 
                 const QString vp1 = QString::fromLocal8Bit(qgetenv("KAYA_VISION_POINT_CONF")).trimmed();
-                if (!vp1.isEmpty()) dirsToTry.append(vp1);
+                if (!vp1.isEmpty()) dirsToTry << vp1;
 
                 for (const QString& d : dirsToTry)
                 {
@@ -161,7 +181,14 @@ static QVariantMap inferFromNameToMap(const QString& fileName, const QString& ra
                         tomlPath = candidate;
                         break;
                     }
+
+                    logs << QString("%1 was not found in %2").arg(ref, d);
                 }
+            }
+
+            if (!tomlPath.isEmpty())
+            {
+                logs << QString("%1 loaded").arg(tomlPath);
 
                 const QVariantMap cfg = inferFromTomlFile(tomlPath);
                 if (cfg.value("ok").toBool())
@@ -176,6 +203,7 @@ static QVariantMap inferFromNameToMap(const QString& fileName, const QString& ra
     }
 
     out["ok"] = any;
+    out["log"] = logs;
     return out;
 }
 
@@ -425,6 +453,11 @@ QVariantMap RawPixelModel::inferSpecFromFileName(const QUrl& url)
 
     const QVariantMap inferred = inferFromNameToMap(fi.fileName(), fi.absolutePath());
 
+    for (const QString& s : inferred.value("log").toStringList())
+    {
+        emit logMessage(s);
+    }
+
     if (inferred.value("ok").toBool())
     {
         if (inferred.contains("width")) setWidthPx(inferred.value("width").toInt());
@@ -440,6 +473,12 @@ QVariantMap RawPixelModel::inferSpecFromFilePath(const QString& path)
     const QFileInfo fi(path);
 
     const QVariantMap inferred = inferFromNameToMap(fi.fileName(), fi.absolutePath());
+
+    for (const QString& s : inferred.value("log").toStringList())
+    {
+        emit logMessage(s);
+    }
+
 
     if (inferred.value("ok").toBool())
     {

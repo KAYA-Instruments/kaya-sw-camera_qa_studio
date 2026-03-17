@@ -10,6 +10,13 @@ ApplicationWindow {
     height: 850
     title: "kaya-sw-camera_qa_studio"
 
+
+    property string logText: ""
+
+    function addLog(msg) {
+        if (logText.length > 0) logText += "\n"
+        logText += msg
+    }
     RawPixelModel { id: leftModel }
     RawPixelModel { id: rightModel }
 
@@ -23,14 +30,18 @@ ApplicationWindow {
         function onFileChanged() { requestJumpToFirstDiff() }
         function onSpecChanged() { requestJumpToFirstDiff() }
         function onSizeStatusChanged() { requestJumpToFirstDiff() }
-    }
+    
+        function onLogMessage(message) { addLog(message) }
+}
 
     Connections {
         target: rightModel
         function onFileChanged() { requestJumpToFirstDiff() }
         function onSpecChanged() { requestJumpToFirstDiff() }
         function onSizeStatusChanged() { requestJumpToFirstDiff() }
-    }
+    
+        function onLogMessage(message) { addLog(message) }
+}
 
     property bool _syncGuard: false
 
@@ -169,9 +180,15 @@ Item { Layout.fillWidth: true }
         }
     }
 
-    SplitView {
+    ColumnLayout {
         anchors.fill: parent
-        orientation: Qt.Horizontal
+        spacing: 6
+
+        SplitView {
+            id: mainSplit
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            orientation: Qt.Horizontal
 
         // LEFT PANE
         Item {
@@ -611,5 +628,34 @@ Item { Layout.fillWidth: true }
                 }
             }
         }
+    }
+
+        Frame {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 160
+
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 4
+
+                Label { text: "Log" }
+
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    TextArea {
+                        id: logArea
+                        text: logText
+                        readOnly: true
+                        wrapMode: TextArea.NoWrap
+                        selectByMouse: true
+                        font.family: "Consolas"
+                        onTextChanged: cursorPosition = length
+                    }
+                }
+            }
+        }
+
     }
 }
