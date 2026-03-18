@@ -455,10 +455,17 @@ Tip: groups below are collapsible (expand the ones you need).
   <tbody>
     <tr>
       <td class="col-option"><code>--refoutput</code></td>
-      <td class="col-required">yes</td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT</code></td>
+      <td class="col-default"><code>@args@</code></td>
+      <td class="col-desc">Output RAW file name (unpacked by default)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--outdir</code></td>
+      <td class="col-required">no</td>
       <td class="col-type"><code>TEXT</code></td>
       <td class="col-default"><code></code></td>
-      <td class="col-desc">Output RAW file (unpacked by default)</td>
+      <td class="col-desc">Optional output directory for both RAW output and log file</td>
     </tr>
   </tbody>
 </table>
@@ -538,7 +545,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>:FILE</code></td>
       <td class="col-default"><code></code></td>
-      <td class="col-desc">Config file (TOML/INI). Later config files may override earlier ones; command line options override config.</td>
+      <td class="col-desc">Config file (TOML). Later config files may override earlier ones; command line options override config.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--refversion</code></td>
