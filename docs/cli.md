@@ -106,7 +106,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">yes</td>
       <td class="col-type"><code>TEXT:{Mono8,Mono10,Mono12,Mono14,Mono16,BayerGR8,BayerGR10,BayerGR12,BayerGR14,BayerRG8,BayerRG10,BayerRG12,BayerRG14,BayerGB8,BayerGB10,BayerGB12,BayerGB14,BayerBG8,BayerBG10,BayerBG12,BayerBG14,BayerGR16,BayerRG16,BayerGB16,BayerBG16}</code></td>
       <td class="col-default"><code></code></td>
-      <td class="col-desc">PixelFormat: Mono8/Mono10/Mono12/Mono14/Mono16, Bayer{GR,RG,GB,BG}{8,10,12,14,16}</td>
+      <td class="col-desc">PixelFormat: Mono{GR,RG,GB,BG}{8,10,12,14,16}, Bayer{GR,RG,GB,BG}{8,10,12,14,16}</td>
     </tr>
     <tr>
       <td class="col-option"><code>--refstride</code></td>
