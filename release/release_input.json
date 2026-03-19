@@ -1,0 +1,7 @@
+{
+    "suffix": "release_automation",
+    "notes_file": "release\\notes.md",
+    "is_prerelease": true,
+    "is_draft": false,
+    "base_number": 11
+}
