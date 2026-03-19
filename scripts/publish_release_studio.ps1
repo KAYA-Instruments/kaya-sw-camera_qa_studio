@@ -88,9 +88,24 @@ if ($notesFileRel) {
     if (-not (Test-Path -LiteralPath $notesPath)) {
         throw "Notes file not found: $notesPath"
     }
-    # Read the entire file and split into lines.
+    # Read the entire file as a single string. We need to retain the original
+    # end-of-line style (CRLF vs LF) to avoid rewriting the file with a
+    # different newline convention. Using -Raw gives us the file verbatim.
     $fileContent = Get-Content -LiteralPath $notesPath -Raw -Encoding UTF8
-    $lines = $fileContent -split "`n"
+
+    # Detect the newline delimiter used in the file. If CRLF is present
+    # anywhere, assume CRLF; otherwise fallback to LF. This preserves
+    # Windows vs. Unix line endings. PowerShell does not support the
+    # ternary operator, so use an if/else statement instead of "? :".
+    if ($fileContent -match "`r`n") {
+        $delimiter = "`r`n"
+    } else {
+        $delimiter = "`n"
+    }
+
+    # Split the file into lines using the detected delimiter. Note that the
+    # delimiter characters are not included in the resulting strings.
+    $lines = $fileContent -split [regex]::Escape($delimiter)
 
     # Locate markers for title and notes sections.  Initialise indices to -1.
     $notesStartIdx = -1
@@ -140,6 +155,9 @@ if ($notesFileRel) {
         throw "No release notes found between '--Notes begin--' and '--Notes end--'. Please insert your notes."
     }
     $notesLines = $lines[($notesStartIdx + 1)..($notesEndIdx - 1)]
+    # Join the extracted note lines using a single LF. We deliberately use
+    # LF here rather than the original delimiter because GitHub CLI accepts
+    # LF within notes content.
     $notesContent = ($notesLines -join "`n").Trim()
     if ([string]::IsNullOrWhiteSpace($notesContent)) {
         throw "No release notes found between '--Notes begin--' and '--Notes end--'. Please insert your notes."
@@ -153,17 +171,37 @@ if ($notesFileRel) {
     # surrounding text intact.  Skip lines strictly between the markers for both sections.
     $newLines = @()
     for ($i = 0; $i -lt $lines.Length; $i++) {
-        # Skip lines that are inside the title section
+        # Skip lines that are inside the title section (exclusive of markers)
         if ($i -gt $titleStartIdx -and $i -lt $titleEndIdx) {
             continue
         }
-        # Skip lines that are inside the notes section
+        # Skip lines that are inside the notes section (exclusive of markers)
         if ($i -gt $notesStartIdx -and $i -lt $notesEndIdx) {
             continue
         }
         $newLines += $lines[$i]
     }
-    Set-Content -LiteralPath $notesPath -Value ($newLines -join "`n") -Encoding UTF8
+    # Build the new content string using the original delimiter to preserve
+    # line endings. If nothing was removed, skip rewriting the file. This
+    # avoids modifying the file when no changes were needed.
+    if ($newLines.Length -ne $lines.Length) {
+        # Reconstruct the file content using the original delimiter.  Preserve
+        # whether the original file ended with a newline by checking if the
+        # raw content ends with the delimiter.  When writing a single
+        # string via Set-Content, use -NoNewline to avoid PowerShell
+        # appending its own newline automatically.
+        $endsWithDelimiter = $fileContent.EndsWith($delimiter)
+        # Join the remaining lines using the original delimiter. When the
+        # original file ends with a delimiter, the split array will include
+        # a trailing empty string. Joining will reproduce the trailing
+        # delimiter automatically. Only append an extra delimiter when the
+        # original ended with a delimiter and the last element is not empty.
+        $newContent = $newLines -join $delimiter
+        if ($endsWithDelimiter -and $newLines.Count -gt 0 -and $newLines[-1] -ne "") {
+            $newContent += $delimiter
+        }
+        Set-Content -LiteralPath $notesPath -Value $newContent -Encoding UTF8 -NoNewline
+    }
 } else {
     # If no notes file is provided, fall back to auto-generated notes and any suffix
     # defined in the JSON config.  The suffix value remains unchanged.
