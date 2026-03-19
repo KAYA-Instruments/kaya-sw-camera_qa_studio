@@ -25,6 +25,10 @@ if (-not (Test-Path -LiteralPath $inputPath)) {
 $config = Get-Content -Path $inputPath -Raw | ConvertFrom-Json
 
 $suffix = $config.suffix
+    # Sanitize the suffix read from the JSON config by replacing whitespace with underscores.
+    if ($suffix) {
+        $suffix = $suffix -replace "\s+", "_"
+    }
 $notesFileRel = $config.notes_file
 $isPrerelease = $config.is_prerelease
 $isDraft = $config.is_draft
@@ -114,7 +118,19 @@ if ($notesFileRel) {
         throw "No release title found between '--Release title begin--' and '--Release title end--'. Please insert a single line."
     }
     # Override the suffix from the JSON config with the value from the title markers.
-    $suffix = $titleLine
+    # Replace any whitespace in the title with underscores to produce a valid tag suffix.
+    $suffix = $titleLine -replace "\s+", "_"
+
+    # Recompute the tag and title now that the suffix has changed.  The version
+    # number $newNum is already determined from the existing releases and any
+    # base_number override.  Update the base arguments array accordingly.
+    $newTag = "v0-0-$newNum"
+    if ($suffix) { $newTag = "${newTag}_${suffix}" }
+    $newTitle = $newTag
+    if ($ghArgs.Count -ge 4) {
+        $ghArgs[0] = $newTag
+        $ghArgs[3] = $newTitle
+    }
 
     # Validate the notes markers and extract the notes content.
     if ($notesStartIdx -lt 0 -or $notesEndIdx -lt 0 -or $notesEndIdx -le $notesStartIdx) {
