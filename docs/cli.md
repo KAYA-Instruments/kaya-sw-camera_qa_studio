@@ -18,13 +18,13 @@ Options that start with an uppercase letter after `--` are camera parameters (SF
 Options that start with a lowercase letter are additional utility tuning knobs; see each option's description for details.
 
 For the authoritative built-in help, run:
-`kaya-sw-camera_qa_reference_buffer.exe --help`
+`sar-sw-camera_qa_reference_buffer.exe --help`
 
 
 ## Synopsis
 
 ```text
-kaya-sw-camera_qa_reference_buffer.exe [OPTIONS]
+sar-sw-camera_qa_reference_buffer.exe [OPTIONS]
 ```
 
 ## Options
@@ -579,7 +579,7 @@ This feature is relied upon by the workflow even if it is not currently shown in
 Example:
 
 ```text
-kaya-sw-camera_qa_reference_buffer.exe ^
+sar-sw-camera_qa_reference_buffer.exe ^
   --Width 640 --Height 640 ^
   --PixelFormat Mono10 ^
   --TestPattern GrayDiagonalRamp ^
