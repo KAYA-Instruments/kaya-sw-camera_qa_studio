@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory=$true)]
     [string]$ExePath,
-    [string]$RepoFullName = "KAYA-Instruments/kaya-sw-camera_qa_studio",
+    [string]$RepoFullName = "SAR-Vision/kaya-sw-camera_qa_studio",
     [string]$InputJsonFile = "release\release_input.json"
 )
 
