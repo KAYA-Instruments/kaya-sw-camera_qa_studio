@@ -8,7 +8,7 @@ ApplicationWindow {
     visible: true
     width: 1500
     height: 850
-    title: "kaya-sw-camera_qa_studio"
+    title: "sar-sw-camera_qa_studio"
 
 
     property string logText: ""

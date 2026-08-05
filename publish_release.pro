@@ -2,7 +2,7 @@ TEMPLATE = aux
 TARGET   = publish_release
 
 # Absolute (source-tree) path to the built executable
-releaseExe = $$PWD/TESTDIR/kaya-sw-camera_qa_studio.exe
+releaseExe = $$PWD/TESTDIR/sar-sw-camera_qa_studio.exe
 
 # Override the default 'all' target so building this project runs the PowerShell script
 all.target = all

@@ -13,7 +13,7 @@ sudo apt-get update
 sudo apt-get install -y cmake ninja-build qt6-base-dev qt6-declarative-dev
 cmake -S . -B build -G Ninja
 cmake --build build
-./build/kaya-sw-camera_qa_studio
+./build/sar-sw-camera_qa_studio
 ```
 
 ## Build (Windows)

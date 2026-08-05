@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(kaya_sw_camera_qa_studio LANGUAGES CXX)
+project(sar_sw_camera_qa_studio LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,4 +19,4 @@ qt_add_executable(raw_twin_viewer
 target_include_directories(raw_twin_viewer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(raw_twin_viewer PRIVATE Qt6::Quick)
 
-set_target_properties(raw_twin_viewer PROPERTIES OUTPUT_NAME "kaya-sw-camera_qa_studio")
+set_target_properties(raw_twin_viewer PROPERTIES OUTPUT_NAME "sar-sw-camera_qa_studio")
