@@ -33,7 +33,7 @@ Tip: groups below are collapsible (expand the ones you need).
 
 <!-- AUTOGEN:OPTIONS:BEGIN -->
 
-<details open class="cli-group">
+<details open class="cli-group" markdown="1">
   <summary class="cli-summary">OPTIONS</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -66,7 +66,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Image format</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -120,7 +120,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Test pattern</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -244,7 +244,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Defect pixel correction</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -303,9 +303,18 @@ Tip: groups below are collapsible (expand the ones you need).
   </tbody>
 </table>
 </div>
+
+## Defect Pixel Correction: frame-edge behavior
+
+`--DefectPixelCorrectionEnable` corrects a configured pixel by averaging its two same-row neighbors (Mono: &plusmn;1px; Bayer: &plusmn;2px, same Bayer color), per the KAYA GenICam camera manual, section 7.8.1.
+
+That manual does not state what happens when a configured coordinate is close enough to the left/right frame border that one of its two neighbors falls outside the frame. This utility's behavior (as of 2026-08-20): the single in-bounds neighbor is used for **both** terms of the average, rather than using the defect pixel's own (defective) value or rejecting the coordinate. This is informed by general image-sensor-processing literature on border-pixel handling in defect-correction filters, not by a KAYA-specific spec statement.
+
+**This has not been verified against real KAYA/Iron4502 camera hardware.** If you have access to a camera exhibiting an edge-adjacent defect pixel, comparing its corrected output against this utility's output for the same coordinate would confirm or correct this assumption.
+
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Black level correction</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -352,7 +361,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Digital gain</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -392,7 +401,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Auto Compensation ROI</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -446,7 +455,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">White Balance</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -507,7 +516,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Pixel LUT</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -568,7 +577,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Binning</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -622,7 +631,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Decimation</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -669,7 +678,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Output</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -709,7 +718,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Extra</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -756,7 +765,7 @@ Tip: groups below are collapsible (expand the ones you need).
 </div>
 </details>
 
-<details class="cli-group">
+<details class="cli-group" markdown="1">
   <summary class="cli-summary">Meta</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -855,14 +864,8 @@ The second block loads a whole table from `table.raw`, then immediately override
 
 `[[lut]]` blocks do **not** use a discriminator field (there is no `Op = "..."` key anywhere in the contract). If you see a CLI error mentioning `Op`, remove that field and write `LUTEnable`/`LUTIndex`+`LUTValue`/`LUTValueAll` directly as their own keys instead, following the shape above.
 
-## Defect Pixel Correction: frame-edge behavior
-
-`--DefectPixelCorrectionEnable` corrects a configured pixel by averaging its two same-row neighbors (Mono: &plusmn;1px; Bayer: &plusmn;2px, same Bayer color), per the KAYA GenICam camera manual, section 7.8.1.
-
-That manual does not state what happens when a configured coordinate is close enough to the left/right frame border that one of its two neighbors falls outside the frame. This utility's behavior (as of 2026-08-20): the single in-bounds neighbor is used for **both** terms of the average, rather than using the defect pixel's own (defective) value or rejecting the coordinate. This is informed by general image-sensor-processing literature on border-pixel handling in defect-correction filters, not by a KAYA-specific spec statement.
-
-**This has not been verified against real KAYA/Iron4502 camera hardware.** If you have access to a camera exhibiting an edge-adjacent defect pixel, comparing its corrected output against this utility's output for the same coordinate would confirm or correct this assumption.
-
+<!-- fragments/defect_pixel_edge_handling.md now renders inline inside the "Defect pixel correction"
+     <details> group (see scripts/gen_public_cli_md.py _GROUP_APPENDIX_FRAGMENTS), not here. -->
 ## White Balance: statistics ROI assumption
 
 `--BalanceWhiteAuto` applies `Cw = BalanceRatio[c] * C` per Bayer channel (KAYA GenICam camera manual, section 7.5.5), where `BalanceRatio[c]` is either set manually (`--BalanceRatioSelector`/`--BalanceRatio`) or computed automatically from gray-world statistics gathered over a region of interest.
