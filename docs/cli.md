@@ -418,7 +418,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT</code></td>
       <td class="col-default"><code>0</code></td>
-      <td class="col-desc">OffsetX of the statistics ROI shared by White Balance (sensor-domain; see WhiteBalance.h for the ROI-reuse rationale)</td>
+      <td class="col-desc">OffsetX of the statistics ROI shared by White Balance (sensor-domain; ROI-reuse rationale: https://sar-vision.github.io/sar-sw-camera_qa_studio/cli/#white-balance-statistics-roi-assumption)</td>
     </tr>
     <tr>
       <td class="col-option"><code>--AutoCompensationRoiOffsetY</code></td>
@@ -806,6 +806,55 @@ Tip: groups below are collapsible (expand the ones you need).
 
 <!-- AUTOGEN:OPTIONS:END -->
 
+## TOML config-file scripting blocks
+
+`--refconfig <file.toml>` (or a bare `.toml` path token) loads a config file. Plain `Key = value` lines at the top level set any CLI option directly (e.g. `Width = 640`). Four pipeline steps additionally support **repeated blocks** for scripting multiple assignments in one file: `[[blc]]`, `[[gain]]`, `[[lut]]`, `[[wb]]`. Config-file operations are always applied before command-line operations, regardless of where the `--refconfig` token sits among the CLI arguments.
+
+### `[[blc]]` / `[[gain]]` / `[[wb]]`: one flat assignment per block
+
+These three are a selector plus a single value, one full assignment per block:
+
+```toml
+[[blc]]
+BlackLevelSelector = "Red"
+BlackLevel = 1
+[[blc]]
+BlackLevelSelector = "Green"
+BlackLevel = 2
+
+[[gain]]
+GainSelector = "DigitalRed"
+Gain = 1.25
+
+[[wb]]
+BalanceRatioSelector = "Red"
+BalanceRatio = 1.2
+```
+
+Each block is self-contained: both fields are required every time, in any order within the block.
+
+### `[[lut]]`: ordered field-by-field writes, persistent selector
+
+Pixel LUT has more write forms than a flat selector+value pair (`LUTEnable`, `LUTIndex`+`LUTValue`, `LUTValueAll`), all sharing one **persistent** `LUTSelector` - exactly like the command-line `--LUTSelector`/`--LUTEnable`/`--LUTIndex`/`--LUTValue`/`--LUTValueAll` options. Each field in a `[[lut]]` block fires its write immediately, in the exact order it's written in the file, and `LUTSelector` carries over from one block to the next if a later block omits it:
+
+```toml
+[[lut]]
+LUTSelector = "Red"
+LUTEnable = true
+LUTIndex = [0, 5, 10]
+LUTValue = [100, 105, 110]
+
+[[lut]]
+# no LUTSelector here - still applies to Red, the last one selected
+LUTValueAll = "table.raw"
+LUTIndex = [0]
+LUTValue = [999]
+```
+
+The second block loads a whole table from `table.raw`, then immediately overrides index 0 to 999 - because that's the order the fields appear in the file, mirroring how a real LUT RAM entry is simply overwritten by whichever access happens later, regardless of which node performed it.
+
+`[[lut]]` blocks do **not** use a discriminator field (there is no `Op = "..."` key anywhere in the contract). If you see a CLI error mentioning `Op`, remove that field and write `LUTEnable`/`LUTIndex`+`LUTValue`/`LUTValueAll` directly as their own keys instead, following the shape above.
+
 ## Defect Pixel Correction: frame-edge behavior
 
 `--DefectPixelCorrectionEnable` corrects a configured pixel by averaging its two same-row neighbors (Mono: &plusmn;1px; Bayer: &plusmn;2px, same Bayer color), per the KAYA GenICam camera manual, section 7.8.1.
@@ -813,6 +862,22 @@ Tip: groups below are collapsible (expand the ones you need).
 That manual does not state what happens when a configured coordinate is close enough to the left/right frame border that one of its two neighbors falls outside the frame. This utility's behavior (as of 2026-08-20): the single in-bounds neighbor is used for **both** terms of the average, rather than using the defect pixel's own (defective) value or rejecting the coordinate. This is informed by general image-sensor-processing literature on border-pixel handling in defect-correction filters, not by a KAYA-specific spec statement.
 
 **This has not been verified against real KAYA/Iron4502 camera hardware.** If you have access to a camera exhibiting an edge-adjacent defect pixel, comparing its corrected output against this utility's output for the same coordinate would confirm or correct this assumption.
+
+## White Balance: statistics ROI assumption
+
+`--BalanceWhiteAuto` applies `Cw = BalanceRatio[c] * C` per Bayer channel (KAYA GenICam camera manual, section 7.5.5), where `BalanceRatio[c]` is either set manually (`--BalanceRatioSelector`/`--BalanceRatio`) or computed automatically from gray-world statistics gathered over a region of interest.
+
+That manual's White Balance section (7.5.5) does not itself name which ROI feeds those statistics. The only statistics ROI defined anywhere in the manual is `AutoCompensationRoiWidth`/`AutoCompensationRoiHeight`/`AutoCompensationRoiOffsetX`/`AutoCompensationRoiOffsetY` (section 7.4.5), which the manual otherwise uses for the Auto Exposure/Gain brightness algorithm - a physical, analog-capture feature this utility does not implement (there is no real sensor to expose or gain-adjust). This utility assumes White Balance statistics reuse that same `AutoCompensationRoi*` window, since camera GenICam trees typically share one statistics-collection ROI across auto algorithms and the manual defines no alternative. **This is a documented assumption, not a KAYA-confirmed behavior.** If it turns out to be wrong, only the ROI source would need to change - the gray-world formula itself does not depend on where the ROI comes from.
+
+`--BalanceWhiteAuto` mode semantics, specific to this being a single-shot buffer generator rather than a live multi-frame camera stream:
+
+- **Off** - statistics are not gathered; `--BalanceRatio` is used exactly as given (default 1.0, i.e. no correction).
+- **Manual** - treated identically to Off in this utility. The KAYA manual lists it as a distinct enum value, but a one-shot generator has no basis to distinguish "manual" from "auto disabled".
+- **Once** and **Continuous** - identical in this utility: both gather gray-world statistics from the current frame within `AutoCompensationRoi*` (excluding pixels above `--BalanceWhiteThreshold`) and apply the computed ratio to that same frame. There is no frame-to-frame stream for "Continuous" to mean anything different against.
+
+`--BalanceWhiteCalculationMode` (HighestValue/Red/Green/Blue) selects the reference channel the other channels are normalized against; the manual does not state a default, so this utility defaults to Green.
+
+White Balance requires a Bayer `PixelFormat`. Unlike `--Gain` (which falls back to a single mono multiply when given a Mono frame), gray-world channel normalization has no meaning with only one channel, so enabling White Balance against a Mono `PixelFormat` is a hard CLI/runtime error rather than a silent no-op.
 
 ## Output auto-naming (`@args@`)
 
