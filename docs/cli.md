@@ -393,6 +393,121 @@ Tip: groups below are collapsible (expand the ones you need).
 </details>
 
 <details class="cli-group">
+  <summary class="cli-summary">Auto Compensation ROI</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiOffsetX</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">OffsetX of the statistics ROI shared by White Balance (sensor-domain; see WhiteBalance.h for the ROI-reuse rationale)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiOffsetY</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">OffsetY of the statistics ROI shared by White Balance</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiWidth</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">Width of the statistics ROI shared by White Balance. 0 (default) resolves to the full sensor-domain width minus OffsetX</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiHeight</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">Height of the statistics ROI shared by White Balance. 0 (default) resolves to the full sensor-domain height minus OffsetY</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group">
+  <summary class="cli-summary">White Balance</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-option"><code>--BalanceWhiteAuto</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{Off,Once,Continuous,Manual}</code></td>
+      <td class="col-default"><code>Off</code></td>
+      <td class="col-desc">White balance mode: Off|Once|Continuous|Manual. Once and Continuous are identical in this tool (no multi-frame stream exists to make them differ): both compute gray-world statistics from the current frame and apply the result to that same frame. Manual is treated identically to Off (use --BalanceRatio verbatim).</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceWhiteCalculationMode</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{HighestValue,Red,Green,Blue}</code></td>
+      <td class="col-default"><code>Green</code></td>
+      <td class="col-desc">Reference channel for gray-world normalization: HighestValue|Red|Green|Blue. Not given a default by the KAYA manual; this tool defaults to Green.</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceWhiteThreshold</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>INT:INT in [-1 - 4294967295]</code></td>
+      <td class="col-default"><code>-1</code></td>
+      <td class="col-desc">Pixels above this value are excluded from gray-world statistics (ignores over-saturated pixels). Use -1 (default) to auto-resolve to the current PixelFormat's max value (no exclusion).</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceRatioSelector</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{Red,Green,Blue}</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Select channel for the next --BalanceRatio (Red|Green|Blue)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceRatio</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>FLOAT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Set BalanceRatio for the channel selected by the immediately preceding --BalanceRatioSelector (encoded using current --reftpg-fraction). Overwritten by the computed result when --BalanceWhiteAuto is Once or Continuous.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group">
   <summary class="cli-summary">Pixel LUT</summary>
 <div class="table-scroll">
 <table class="cli-table">
