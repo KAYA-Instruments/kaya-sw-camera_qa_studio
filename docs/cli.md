@@ -369,14 +369,14 @@ Tip: groups below are collapsible (expand the ones you need).
     <tr>
       <td class="col-option"><code>--LUTIndex</code></td>
       <td class="col-required">no</td>
-      <td class="col-type"><code>UINT</code></td>
+      <td class="col-type"><code>UINT ...</code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Table index (offset) of the entry/entries to set in the selected LUT; accepts multiple values, matched pairwise with the following --LUTValue</td>
     </tr>
     <tr>
       <td class="col-option"><code>--LUTValue</code></td>
       <td class="col-required">no</td>
-      <td class="col-type"><code>UINT</code></td>
+      <td class="col-type"><code>UINT ...</code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Value(s) to store at the entry/entries selected by the immediately preceding --LUTIndex</td>
     </tr>
@@ -604,7 +604,7 @@ Tip: groups below are collapsible (expand the ones you need).
     <tr>
       <td class="col-option"><code>--refconfig</code></td>
       <td class="col-required">no</td>
-      <td class="col-type"><code>:FILE</code></td>
+      <td class="col-type"><code>:FILE ...</code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Config file (TOML). Later config files may override earlier ones; command line options override config.</td>
     </tr>
