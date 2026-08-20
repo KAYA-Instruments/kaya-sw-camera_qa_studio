@@ -782,7 +782,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>:FILE ...</code></td>
       <td class="col-default"><code></code></td>
-      <td class="col-desc">Config file (TOML). Later config files may override earlier ones; command line options override config.</td>
+      <td class="col-desc">Config file. TOML syntax: https://toml.io/en/ . Later config files may override earlier ones; command line options override config. Worked examples: this repository's TESTDIR/*.toml fixtures; [[blc]]/[[gain]]/[[lut]]/[[wb]] scripting-block contract: https://sar-vision.github.io/sar-sw-camera_qa_studio/cli/#toml-config-file-scripting-blocks</td>
     </tr>
     <tr>
       <td class="col-option"><code>--refversion</code></td>
