@@ -245,6 +245,67 @@ Tip: groups below are collapsible (expand the ones you need).
 </details>
 
 <details class="cli-group">
+  <summary class="cli-summary">Defect pixel correction</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-option"><code>--DefectPixelCorrectionEnable</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>BOOLEAN</code></td>
+      <td class="col-default"><code>false</code></td>
+      <td class="col-desc">Enable the Defect Pixel correction algorithm</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--DefectPixelSelector</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Select defect-pixel slot to configure (0-31). Unlike --BlackLevelSelector/--GainSelector, stays selected across multiple following writes until a different --DefectPixelSelector is given.</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--DefectPixelX</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>INT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Defect pixel X coordinate for the selected slot (sensor-domain; -1 clears the slot)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--DefectPixelY</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>INT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Defect pixel Y coordinate for the selected slot (sensor-domain; -1 clears the slot)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--DefectPixelRemove</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code></code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Remove the defect pixel at the selected slot (Command). Accepted for camera-compatibility parity with automated QA scripts that issue the same parameter sequence to a real camera and this utility; has no functional effect here, since nothing persists between runs.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group">
   <summary class="cli-summary">Black level correction</summary>
 <div class="table-scroll">
 <table class="cli-table">
@@ -629,6 +690,14 @@ Tip: groups below are collapsible (expand the ones you need).
 
 
 <!-- AUTOGEN:OPTIONS:END -->
+
+## Defect Pixel Correction: frame-edge behavior
+
+`--DefectPixelCorrectionEnable` corrects a configured pixel by averaging its two same-row neighbors (Mono: &plusmn;1px; Bayer: &plusmn;2px, same Bayer color), per the KAYA GenICam camera manual, section 7.8.1.
+
+That manual does not state what happens when a configured coordinate is close enough to the left/right frame border that one of its two neighbors falls outside the frame. This utility's behavior (as of 2026-08-20): the single in-bounds neighbor is used for **both** terms of the average, rather than using the defect pixel's own (defective) value or rejecting the coordinate. This is informed by general image-sensor-processing literature on border-pixel handling in defect-correction filters, not by a KAYA-specific spec statement.
+
+**This has not been verified against real KAYA/Iron4502 camera hardware.** If you have access to a camera exhibiting an edge-adjacent defect pixel, comparing its corrected output against this utility's output for the same coordinate would confirm or correct this assumption.
 
 ## Output auto-naming (`@args@`)
 
