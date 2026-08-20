@@ -332,6 +332,67 @@ Tip: groups below are collapsible (expand the ones you need).
 </details>
 
 <details class="cli-group">
+  <summary class="cli-summary">Pixel LUT</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-option"><code>--LUTSelector</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{Red,Green,Blue,All}</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Select LUT channel (Red|Green|Blue|All). SFNC additionally defines 'Luminance' and 'Device-specific' values, not implemented by this camera and not accepted here. 'All' (write convenience across the 3 per-channel tables) is a KAYA extension, not part of the SFNC enum. Unlike --BlackLevelSelector/--GainSelector, the selector stays active across multiple following LUT writes until a different --LUTSelector is given.</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--LUTEnable</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>BOOLEAN</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Activate the LUT selected by the immediately preceding --LUTSelector</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--LUTIndex</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Table index (offset) of the entry/entries to set in the selected LUT; accepts multiple values, matched pairwise with the following --LUTValue</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--LUTValue</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Value(s) to store at the entry/entries selected by the immediately preceding --LUTIndex</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--LUTValueAll</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:FILE</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Load all coefficients of the selected LUT from a raw file (one 16-bit little-endian entry per table index, table size from --reftpg-bpp; only the low --reftpg-bpp bits of each entry are used)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group">
   <summary class="cli-summary">Binning</summary>
 <div class="table-scroll">
 <table class="cli-table">
