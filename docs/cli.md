@@ -167,14 +167,14 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>UINT:UINT in [0 - 4294967295]</code></td>
       <td class="col-default"><code>0</code></td>
-      <td class="col-desc">Test pattern value minimum (applied as: value = min + base * step). When --reftpg-RespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
+      <td class="col-desc">Test pattern value minimum, as a real camera user would set it (applied as: value = min + base * step). Must be &lt;= --TestPatternValueMax; see --TestPatternValueMax for the active generation domain and its rejection rule, which this option is also subject to.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--TestPatternValueMax</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>INT:INT in [-1 - 4294967295]</code></td>
-      <td class="col-default"><code>4095</code></td>
-      <td class="col-desc">Test pattern value maximum. Use -1 to auto-calculate from --PixelFormat bit depth. When --reftpg-RespectPixelFormat=true, values are interpreted in the PixelFormat domain; when false, in the internal --reftpg-bpp domain.</td>
+      <td class="col-default"><code>-1</code></td>
+      <td class="col-desc">Test pattern value maximum, as a real camera user would set it. Use -1 (default) to auto-calculate from the active generation domain's max. An explicit value above that max is rejected: real camera firmware restricts this range to the active PixelFormat and does not let a user exceed it (the parameter's own allowed max changes when PixelFormat changes). When --reftpg-RespectPixelFormat=true, the active domain is the PixelFormat bit depth; when false, it is the internal --reftpg-bpp domain.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--TestPatternValueStep</code></td>
@@ -223,7 +223,7 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-required">no</td>
       <td class="col-type"><code>TEXT:{wrap,saturate}</code></td>
       <td class="col-default"><code>wrap</code></td>
-      <td class="col-desc">Overflow handling for generated ramp values: wrap or saturate. Example for Mono8 diagonal ramp near overflow: wrap -&gt; ... FC FD FE FF 00 01 02 ..., saturate -&gt; ... FC FD FE FF FF FF FF ... . For fullscale ramps this usually has no visible effect because values are already inside range.</td>
+      <td class="col-desc">Behavior once the ramp reaches --TestPatternValueMax: wrap back to --TestPatternValueMin, or saturate (hold at --TestPatternValueMax). Not a camera-settable parameter itself - real cameras differ on this with no SFNC equivalent to choose it, so this utility exposes it to reproduce either family. Example for Mono8 with Min=0/Max=255 near overflow: wrap -&gt; ... FC FD FE FF 00 01 02 ..., saturate -&gt; ... FC FD FE FF FF FF FF ... . For fullscale ramps this usually has no visible effect because values are already inside range.</td>
     </tr>
     <tr>
       <td class="col-option"><code>--reftpg-clamp</code></td>
@@ -232,12 +232,45 @@ Tip: groups below are collapsible (expand the ones you need).
       <td class="col-default"><code></code></td>
       <td class="col-desc">Clamp intermediate internal-domain values to the --reftpg-bpp range before storing them in the generated frame. This is an additional internal safety clamp; it does not define the visible ramp style and does not replace --reftpg-overflow.</td>
     </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group" markdown="1">
+  <summary class="cli-summary">Fixed-point arithmetic</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
     <tr>
       <td class="col-option"><code>--reftpg-fixedpoint</code></td>
       <td class="col-required">no</td>
       <td class="col-type"><code>TEXT:{truncate,nearest}</code></td>
       <td class="col-default"><code>truncate</code></td>
       <td class="col-desc">Fixed-point rounding mode for FPGA-style arithmetic (truncate|nearest)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--refnarrow-intermediate-arith</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code></code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Opt-in: simulate a narrow, no-bit-growth FPGA intermediate register (masked to --reftpg-bpp width) for pixel-domain sums/products (DefectPixel/BlackLevel/Gain/Binning/WhiteBalance), instead of the default full-precision-then-saturate-once behavior that models natural per-stage bit growth (the idiomatic RTL pattern). NOT YET CONFIRMED against real KAYA FPGA design, see GitHub issue #13.</td>
     </tr>
   </tbody>
 </table>
@@ -395,6 +428,121 @@ That manual does not state what happens when a configured coordinate is close en
       <td class="col-type"><code>FLOAT</code></td>
       <td class="col-default"><code></code></td>
       <td class="col-desc">Set gain for the channel selected by the immediately preceding --GainSelector (encoded using current --reftpg-fraction)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group" markdown="1">
+  <summary class="cli-summary">Auto Compensation ROI</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiOffsetX</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">OffsetX of the statistics ROI shared by White Balance (sensor-domain; ROI-reuse rationale: https://sar-vision.github.io/sar-sw-camera_qa_studio/cli/#white-balance-statistics-roi-assumption)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiOffsetY</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">OffsetY of the statistics ROI shared by White Balance</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiWidth</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">Width of the statistics ROI shared by White Balance. 0 (default) resolves to the full sensor-domain width minus OffsetX</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--AutoCompensationRoiHeight</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>UINT</code></td>
+      <td class="col-default"><code>0</code></td>
+      <td class="col-desc">Height of the statistics ROI shared by White Balance. 0 (default) resolves to the full sensor-domain height minus OffsetY</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</details>
+
+<details class="cli-group" markdown="1">
+  <summary class="cli-summary">White Balance</summary>
+<div class="table-scroll">
+<table class="cli-table">
+  <colgroup>
+    <col style="width: 220px;">
+    <col style="width: 80px;">
+    <col style="width: 220px;">
+    <col style="width: 120px;">
+    <col style="width: auto;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="col-option">Option</th>
+      <th class="col-required">Required</th>
+      <th class="col-type">Type</th>
+      <th class="col-default">Default</th>
+      <th class="col-desc">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-option"><code>--BalanceWhiteAuto</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{Off,Once,Continuous,Manual}</code></td>
+      <td class="col-default"><code>Off</code></td>
+      <td class="col-desc">White balance mode: Off|Once|Continuous|Manual. Once and Continuous are identical in this tool (no multi-frame stream exists to make them differ): both compute gray-world statistics from the current frame and apply the result to that same frame. Manual is treated identically to Off (use --BalanceRatio verbatim).</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceWhiteCalculationMode</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{HighestValue,Red,Green,Blue}</code></td>
+      <td class="col-default"><code>Green</code></td>
+      <td class="col-desc">Reference channel for gray-world normalization: HighestValue|Red|Green|Blue. Not given a default by the KAYA manual; this tool defaults to Green.</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceWhiteThreshold</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>INT:INT in [-1 - 4294967295]</code></td>
+      <td class="col-default"><code>-1</code></td>
+      <td class="col-desc">Pixels above this value are excluded from gray-world statistics (ignores over-saturated pixels). Use -1 (default) to auto-resolve to the current PixelFormat's max value (no exclusion).</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceRatioSelector</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>TEXT:{Red,Green,Blue}</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Select channel for the next --BalanceRatio (Red|Green|Blue)</td>
+    </tr>
+    <tr>
+      <td class="col-option"><code>--BalanceRatio</code></td>
+      <td class="col-required">no</td>
+      <td class="col-type"><code>FLOAT</code></td>
+      <td class="col-default"><code></code></td>
+      <td class="col-desc">Set BalanceRatio for the channel selected by the immediately preceding --BalanceRatioSelector (encoded using current --reftpg-fraction). Overwritten by the computed result when --BalanceWhiteAuto is Once or Continuous.</td>
     </tr>
   </tbody>
 </table>
@@ -676,7 +824,7 @@ That manual does not state what happens when a configured coordinate is close en
       <td class="col-required">no</td>
       <td class="col-type"><code>:FILE ...</code></td>
       <td class="col-default"><code></code></td>
-      <td class="col-desc">Config file (TOML). Later config files may override earlier ones; command line options override config.</td>
+      <td class="col-desc">Config file. TOML syntax: https://toml.io/en/ . Later config files may override earlier ones; command line options override config. Worked examples: this repository's TESTDIR/*.toml fixtures; [[blc]]/[[gain]]/[[lut]]/[[wb]] scripting-block contract: https://sar-vision.github.io/sar-sw-camera_qa_studio/cli/#toml-config-file-scripting-blocks</td>
     </tr>
     <tr>
       <td class="col-option"><code>--refversion</code></td>
